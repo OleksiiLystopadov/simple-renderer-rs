@@ -11,20 +11,21 @@ mod tga_writer;
 use tga_writer::Image;
 use tga_writer::Color;
 
-fn draw_line(x0: f32, y0: f32, x1: f32, y1: f32, color: Color, image: &mut Image) {
-    for step in 1..100 {
-        let normalized_step: f32 = step as f32 * 0.01;
-        let x = x0 * (1. - normalized_step) + x1 * normalized_step;
-        let y = y0 * (1. - normalized_step) + y1 * normalized_step;
+fn draw_line(x0: u16, y0: u16, x1: u16, y1: u16, color: Color, image: &mut Image) {
+    for x in x0..x1 {
+        let normalized_step: f32 = (x - x0) as f32 / (x1 - x0) as f32;
+        let y = y0 as f32 * (1. - normalized_step) + y1 as f32 * normalized_step;
         image.set_pixel(x as i32, y as i32, color);
     }
 }
 
 fn main() {
-    let red: Color = Color::new(255, 0, 0);
+    let white: Color = Color::new(0, 0, 255);
 
     let mut image = Image::new(100, 100);
 
-    draw_line(10.0, 20.0, 80.0, 40.0, red, &mut image);
+    draw_line(13, 20, 80, 40, white, &mut image);
+    draw_line(20, 13, 40, 80, white, &mut image);
+    draw_line(80, 40, 13, 20, white, &mut image);
     image.write_to_tga("output.tga").unwrap();
 }
