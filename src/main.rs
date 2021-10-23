@@ -11,21 +11,39 @@ mod tga_writer;
 use tga_writer::Image;
 use tga_writer::Color;
 
-fn draw_line(x0: u16, y0: u16, x1: u16, y1: u16, color: Color, image: &mut Image) {
-    for x in x0..x1 {
-        let normalized_step: f32 = (x - x0) as f32 / (x1 - x0) as f32;
-        let y = y0 as f32 * (1. - normalized_step) + y1 as f32 * normalized_step;
-        image.set_pixel(x as i32, y as i32, color);
+fn draw_line(mut x0: f32, mut y0: f32, mut x1: f32, mut y1: f32, color: Color, image: &mut Image) {
+    let dx = (x0 - x1).abs();
+    let dy = (y0 - y1).abs();
+    let is_steep = dx < dy;
+
+    if is_steep {
+        swap(&mut x0, &mut y0);
+        swap(&mut x1, &mut y1);
+    }
+
+    if x0 > x1 {
+        swap(&mut x0,&mut x1);
+        swap(&mut y0,&mut y1);
+    }
+
+    for x in x0 as i32 .. x1 as i32  {
+        let normalized_step: f32 = (x as f32 - x0) / (x1 - x0);
+        let y = y0 * (1. - normalized_step) + y1 * normalized_step;
+        if is_steep {
+            image.set_pixel(y as i32, x as i32, color);
+        } else {
+            image.set_pixel(x as i32, y as i32, color);
+        }
     }
 }
 
 fn main() {
-    let white: Color = Color::new(0, 0, 255);
+    let white: Color = Color::new(255, 255, 255);
 
     let mut image = Image::new(100, 100);
 
-    draw_line(13, 20, 80, 40, white, &mut image);
-    draw_line(20, 13, 40, 80, white, &mut image);
-    draw_line(80, 40, 13, 20, white, &mut image);
+    draw_line(13.0, 20.0, 80.0, 40.0, white, &mut image);
+    draw_line(20.0, 13.0, 40.0, 80.0, white, &mut image);
+    draw_line(80.0, 40.0, 13.0, 20.0, white, &mut image);
     image.write_to_tga("output.tga").unwrap();
 }
