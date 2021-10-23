@@ -1,3 +1,7 @@
+use std::fs::File;
+use std::str::FromStr;
+use std::io::{BufReader, BufRead};
+
 pub fn read(str_path_to_obj_file: String) -> std::io::Result<(Vec<Vec<f32>>, Vec<Vec<i32>>)>{
     let mut vectors = Vec::new();
     let mut faces = Vec::new();
@@ -7,7 +11,7 @@ pub fn read(str_path_to_obj_file: String) -> std::io::Result<(Vec<Vec<f32>>, Vec
 
     let  file = match File::open(&path){
         Err(why) => panic!("couldn't open {}: {}", display,
-                           why.description()),
+                           why.to_string()),
         Ok(file) => file
     };
 
