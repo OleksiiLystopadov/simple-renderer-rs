@@ -62,7 +62,12 @@ impl Image {
     }
 
     pub fn set_pixel(self: &mut Image, x: i32, y: i32, c: Color) {
-        self.data[(x + y * self.width) as usize] = c;
+        match self.data.get_mut((x + y * self.width) as usize) {
+            None => (),
+            Some(pixel) => {
+                std::mem::replace(pixel, c);
+            }
+        };
     }
 
     pub fn write_to_tga(self: &Image, filename: &str) -> io::Result<()> {

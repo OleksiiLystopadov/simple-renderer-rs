@@ -44,6 +44,7 @@ fn main() {
     let white: Color = Color::new(255, 255, 255);
     let height = 1000;
     let width = 1000;
+    let scale = 1.0;
 
     let wavefront_object = wavefront_parser::read("C:\\Users\\oleksii.lystopadov\\Projects\\simple-renderer-rs\\src\\head.obj".to_string()).unwrap();
     let vectors = wavefront_object.0;
@@ -58,10 +59,10 @@ fn main() {
             let v0 = vectors.get((*face.get(j).unwrap() - 1) as usize).unwrap();
             let v1 = vectors.get((*face.get((j + 1) % 3).unwrap() - 1) as usize).unwrap();
 
-            let x0 = ((v0[0] as f64 + 1.0) * (width as f64 / 2.0)) as f32;
-            let y0 = ((v0[1] as f64 + 1.0) * (height as f64 / 2.0)) as f32;
-            let x1 = ((v1[0] as f64 + 1.0) * (width as f64 / 2.0)) as f32;
-            let y1 = ((v1[1] as f64 + 1.0) * (height as f64 / 2.0)) as f32;
+            let x0 = ((v0[0] as f64 + 1.0) * scale * (width as f64 / 2.0)) as f32;
+            let y0 = ((v0[1] as f64 + 1.0) * scale * (height as f64 / 2.0)) as f32;
+            let x1 = ((v1[0] as f64 + 1.0) * scale * (width as f64 / 2.0)) as f32;
+            let y1 = ((v1[1] as f64 + 1.0) * scale * (height as f64 / 2.0)) as f32;
             draw_line(x0, y0, x1, y1, white, &mut image);
         }
     }
