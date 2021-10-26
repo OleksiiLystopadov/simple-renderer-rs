@@ -40,13 +40,19 @@ fn draw_line(mut x0: f32, mut y0: f32, mut x1: f32, mut y1: f32, color: Color, i
     }
 }
 
-fn main() {
+fn draw_triangle(t0: (f32, f32), t1: (f32, f32), t2: (f32, f32), color: Color, image: &mut Image) {
+    draw_line(t0.0, t0.1, t1.0, t1.1, color, image);
+    draw_line(t1.0, t1.1, t2.0, t2.1, color, image);
+    draw_line(t2.0, t2.1, t0.0, t0.1, color, image);
+}
+
+fn render_object() {
     let white: Color = Color::new(255, 255, 255);
     let height = 1000;
     let width = 1000;
     let scale = 1.0;
 
-    let wavefront_object = wavefront_parser::read("C:\\Users\\oleksii.lystopadov\\Projects\\simple-renderer-rs\\src\\head.obj".to_string()).unwrap();
+    let wavefront_object = wavefront_parser::read("E:\\project\\simple-renderer\\src\\head.obj".to_string()).unwrap();
     let vectors = wavefront_object.0;
     let faces = wavefront_object.1;
 
@@ -67,4 +73,19 @@ fn main() {
         }
     }
     image.write_to_tga("output.tga").unwrap();
+}
+
+fn main() {
+    let height = 1000;
+    let width = 1000;
+    let mut image = Image::new(width + 1, height + 1);
+
+    let t0 = vec![(10.0, 70.0), (50.0, 160.0), (70.0, 80.0)];
+    let t1 = vec![(180.0, 50.0), (150.0, 1.0), (70.0, 180.0)];
+    let t2 = vec![(180.0, 150.0), (120.0, 160.0), (130.0, 180.0)];
+
+    draw_triangle(t0[0], t0[1], t0[2], Color::new(0, 0, 255), &mut image);
+    draw_triangle(t1[0], t1[1], t1[2], Color::new(255, 255, 255), &mut image);
+    draw_triangle(t2[0], t2[1], t2[2], Color::new(0, 255, 0), &mut image);
+    image.write_to_tga("triangles.tga").unwrap();
 }
