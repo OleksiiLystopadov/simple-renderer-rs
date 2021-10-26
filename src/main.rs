@@ -40,10 +40,14 @@ fn draw_line(mut x0: f32, mut y0: f32, mut x1: f32, mut y1: f32, color: Color, i
     }
 }
 
-fn draw_triangle(t0: (f32, f32), t1: (f32, f32), t2: (f32, f32), color: Color, image: &mut Image) {
+fn draw_triangle(mut t0: (f32, f32), mut t1: (f32, f32), mut t2: (f32, f32), color: Color, image: &mut Image) {
+    if t0.1>t1.1 { swap(&mut t0, &mut t1) };
+    if t0.1>t2.1 { swap(&mut t0, &mut t2) };
+    if t1.1>t2.1 { swap(&mut t1, &mut t2) };
+
     draw_line(t0.0, t0.1, t1.0, t1.1, color, image);
     draw_line(t1.0, t1.1, t2.0, t2.1, color, image);
-    draw_line(t2.0, t2.1, t0.0, t0.1, color, image);
+    draw_line(t2.0, t2.1, t0.0, t0.1, Color::new(0, 0, 255), image);
 }
 
 fn render_object() {
@@ -84,8 +88,8 @@ fn main() {
     let t1 = vec![(180.0, 50.0), (150.0, 1.0), (70.0, 180.0)];
     let t2 = vec![(180.0, 150.0), (120.0, 160.0), (130.0, 180.0)];
 
-    draw_triangle(t0[0], t0[1], t0[2], Color::new(0, 0, 255), &mut image);
-    draw_triangle(t1[0], t1[1], t1[2], Color::new(255, 255, 255), &mut image);
+    draw_triangle(t0[0], t0[1], t0[2], Color::new(0, 255, 0), &mut image);
+    draw_triangle(t1[0], t1[1], t1[2], Color::new(0, 255, 0), &mut image);
     draw_triangle(t2[0], t2[1], t2[2], Color::new(0, 255, 0), &mut image);
     image.write_to_tga("triangles.tga").unwrap();
 }
