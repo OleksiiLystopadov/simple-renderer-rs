@@ -58,51 +58,34 @@ fn draw_triangle(mut t0: (f32, f32), mut t1: (f32, f32), mut t2: (f32, f32), col
 
         if a.0 > b.0 { swap(&mut a, &mut b) };
         for j in a.0 as i32..(b.0 as i32 + 1) as i32 {
-            image.set_pixel(j, t0.1 as i32 + i, Color::new(255, 255, 255))
+            image.set_pixel(j, t0.1 as i32 + i, color)
         }
     }
 }
 
 fn render_object() {
     let white: Color = Color::new(255, 255, 255);
-    let height = 1000;
-    let width = 1000;
-    let scale = 1.0;
+    let height = 1000.0;
+    let width = 1000.0;
 
     let wavefront_object = wavefront_parser::read("E:\\project\\simple-renderer\\src\\head.obj".to_string()).unwrap();
     let vectors = wavefront_object.0;
     let faces = wavefront_object.1;
 
-    let mut image = Image::new(width + 1, height + 1);
+    let mut image = Image::new((width + 1.0) as i32, (height + 1.0) as i32);
 
     for i in 0..faces.len() {
         let face = faces.get(i).unwrap();
-
+        let mut screen_coordinates: Vec<(f32, f32)> = vec![];
         for j in 0..3 {
-            let v0 = vectors.get((*face.get(j).unwrap() - 1) as usize).unwrap();
-            let v1 = vectors.get((*face.get((j + 1) % 3).unwrap() - 1) as usize).unwrap();
-
-            let x0 = ((v0[0] as f64 + 1.0) * scale * (width as f64 / 2.0)) as f32;
-            let y0 = ((v0[1] as f64 + 1.0) * scale * (height as f64 / 2.0)) as f32;
-            let x1 = ((v1[0] as f64 + 1.0) * scale * (width as f64 / 2.0)) as f32;
-            let y1 = ((v1[1] as f64 + 1.0) * scale * (height as f64 / 2.0)) as f32;
-            draw_line(x0, y0, x1, y1, white, &mut image);
+            let world_coordinates = vectors.get((*face.get(j).unwrap() - 1) as usize).unwrap();
+            screen_coordinates.push((((world_coordinates[0] + 1.0) * width / 2.0) as f32 , ((world_coordinates[1] + 1.0) * height / 2.0) as f32));
         }
+        draw_triangle((screen_coordinates[0].0, screen_coordinates[0].1), (screen_coordinates[1].0, screen_coordinates[1].1), (screen_coordinates[2].0, screen_coordinates[2].1), white, &mut image );
     }
     image.write_to_tga("output.tga").unwrap();
 }
 
 fn main() {
-    let height = 1000;
-    let width = 1000;
-    let mut image = Image::new(width + 1, height + 1);
-
-    let t0 = vec![(10.0, 70.0), (50.0, 160.0), (70.0, 80.0)];
-    let t1 = vec![(180.0, 50.0), (150.0, 1.0), (70.0, 180.0)];
-    let t2 = vec![(180.0, 150.0), (120.0, 160.0), (130.0, 180.0)];
-
-    draw_triangle(t0[0], t0[1], t0[2], Color::new(0, 255, 0), &mut image);
-    draw_triangle(t1[0], t1[1], t1[2], Color::new(0, 255, 0), &mut image);
-    draw_triangle(t2[0], t2[1], t2[2], Color::new(0, 255, 0), &mut image);
-    image.write_to_tga("triangles.tga").unwrap();
+    render_object();
 }
