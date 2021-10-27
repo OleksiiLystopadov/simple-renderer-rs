@@ -41,26 +41,25 @@ fn draw_line(mut x0: f32, mut y0: f32, mut x1: f32, mut y1: f32, color: Color, i
 }
 
 fn draw_triangle(mut t0: (f32, f32), mut t1: (f32, f32), mut t2: (f32, f32), color: Color, image: &mut Image) {
+    if t0.1 == t1.1 && t0.1 == t2.1 { return; }
+
     if t0.1 > t1.1 { swap(&mut t0, &mut t1) };
     if t0.1 > t2.1 { swap(&mut t0, &mut t2) };
     if t1.1 > t2.1 { swap(&mut t1, &mut t2) };
 
-    let total_height = t2.1 - t0.1 + 1.0;
-
-    for y in (t0.1 as i32)..(t1.1 + 1.0) as i32 {
-        let segment_height = t1.1 - t0.1 + 1.0;
-        let alpha = (y as f32 - t0.1) / total_height;
-        let beta = (y as f32 - t0.1) / segment_height;
+    let total_height = t2.1 - t0.1;
+    for i in 0..total_height as i32 {
+        let is_second_half = i > (t1.1 - t0.1) as i32 || t1.1 == t0.1;
+        let segment_height = (if is_second_half { t2.1 - t1.1 } else { t1.1 - t0.1 }) as i32;
+        let alpha = i as f32 / total_height;
+        let beta = ( i as f32 - ( if is_second_half { t1.1 - t0.1 } else { 0.0 } )) / segment_height as f32;
         let mut a = (t0.0 + (t2.0 - t0.0) * alpha, t0.1 + (t2.1 - t0.1) * alpha);
-        let mut b = (t0.0 + (t1.0 - t0.0) * beta, t0.1 + (t1.1 - t0.1) * beta);
+        let mut b = if is_second_half { (t1.0 + (t2.0 - t1.0) * beta, t1.1 + (t2.1 - t1.1) * beta) } else { (t0.0 + (t1.0 - t0.0) * beta, t0.1 + (t1.1 - t0.1) * beta) };
 
         if a.0 > b.0 { swap(&mut a, &mut b) };
         for j in a.0 as i32..(b.0 as i32 + 1) as i32 {
-            image.set_pixel(j, y, Color::new(255, 255, 255))
+            image.set_pixel(j, t0.1 as i32 + i, Color::new(255, 255, 255))
         }
-
-        image.set_pixel(a.0 as i32, y, Color::new(0, 0, 255));
-        image.set_pixel(b.0 as i32, y, Color::new(0, 255, 0));
     }
 }
 
