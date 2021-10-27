@@ -45,10 +45,12 @@ pub fn read(str_path_to_obj_file: String) -> std::io::Result<(Vec<Vec<f32>>, Vec
 
                 let xstr = data_string.next().unwrap();
                 let ysrt = data_string.next().unwrap();
+                let zsrt = data_string.next().unwrap();
 
 
                 vec.push(f32::from_str(xstr).unwrap());
                 vec.push(f32::from_str(ysrt).unwrap());
+                vec.push(f32::from_str(zsrt).unwrap());
 
 
                 vectors.push(vec);
