@@ -51,8 +51,14 @@ fn draw_triangle(mut t0: (f32, f32), mut t1: (f32, f32), mut t2: (f32, f32), col
         let segment_height = t1.1 - t0.1 + 1.0;
         let alpha = (y as f32 - t0.1) / total_height;
         let beta = (y as f32 - t0.1) / segment_height;
-        let a = (t0.0 + (t2.0 - t0.0) * alpha, t0.1 + (t2.1 - t0.1) * alpha);
-        let b = (t0.0 + (t1.0 - t0.0) * beta, t0.1 + (t1.1 - t0.1) * beta);
+        let mut a = (t0.0 + (t2.0 - t0.0) * alpha, t0.1 + (t2.1 - t0.1) * alpha);
+        let mut b = (t0.0 + (t1.0 - t0.0) * beta, t0.1 + (t1.1 - t0.1) * beta);
+
+        if a.0 > b.0 { swap(&mut a, &mut b) };
+        for j in a.0 as i32..(b.0 as i32 + 1) as i32 {
+            image.set_pixel(j, y, Color::new(255, 255, 255))
+        }
+
         image.set_pixel(a.0 as i32, y, Color::new(0, 0, 255));
         image.set_pixel(b.0 as i32, y, Color::new(0, 255, 0));
     }
