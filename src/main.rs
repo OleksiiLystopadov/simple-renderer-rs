@@ -14,6 +14,7 @@ use tga_writer::Image;
 use tga_writer::Color;
 use wavefront_parser::read;
 use std::path::Prefix::Verbatim;
+use std::time::Instant;
 
 fn draw_line(mut x0: f32, mut y0: f32, mut x1: f32, mut y1: f32, color: Color, image: &mut Image) {
     let dx = (x0 - x1).abs();
@@ -79,6 +80,8 @@ fn render_object() {
     let vectors = wavefront_object.0;
     let faces = wavefront_object.1;
 
+    let start_time = Instant::now();
+
     let mut image = Image::new((width + 1.0) as i32, (height + 1.0) as i32);
 
     for i in 0..faces.len() {
@@ -120,6 +123,8 @@ fn render_object() {
         }
     }
     image.write_to_tga("output.tga").unwrap();
+    let elapsed_time = start_time.elapsed();
+    println!("Done in: {} ms", elapsed_time.as_millis());
 }
 
 fn main() {
