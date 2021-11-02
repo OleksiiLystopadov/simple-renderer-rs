@@ -13,7 +13,6 @@ mod wavefront_parser;
 use tga_writer::Image;
 use tga_writer::Color;
 use wavefront_parser::read;
-use std::path::Prefix::Verbatim;
 use std::time::Instant;
 
 fn draw_line(mut x0: f32, mut y0: f32, mut x1: f32, mut y1: f32, color: Color, image: &mut Image) {
@@ -42,7 +41,7 @@ fn draw_line(mut x0: f32, mut y0: f32, mut x1: f32, mut y1: f32, color: Color, i
     }
 }
 
-fn draw_triangle(mut t0: (f32, f32), mut t1: (f32, f32), mut t2: (f32, f32), color: Color, image: &mut Image) {
+fn draw_triangle(mut t0: (i32, i32), mut t1: (i32, i32), mut t2: (i32, i32), color: Color, image: &mut Image) {
     if t0.1 == t1.1 && t0.1 == t2.1 { return; }
 
     if t0.1 > t1.1 { swap(&mut t0, &mut t1) };
@@ -51,12 +50,16 @@ fn draw_triangle(mut t0: (f32, f32), mut t1: (f32, f32), mut t2: (f32, f32), col
 
     let total_height = t2.1 - t0.1;
     for i in 0..total_height as i32 {
-        let is_second_half = i > (t1.1 - t0.1) as i32 || t1.1 == t0.1;
-        let segment_height = (if is_second_half { t2.1 - t1.1 } else { t1.1 - t0.1 }) as i32;
-        let alpha = i as f32 / total_height;
-        let beta = (i as f32 - (if is_second_half { t1.1 - t0.1 } else { 0.0 })) / segment_height as f32;
-        let mut a = (t0.0 + (t2.0 - t0.0) * alpha, t0.1 + (t2.1 - t0.1) * alpha);
-        let mut b = if is_second_half { (t1.0 + (t2.0 - t1.0) * beta, t1.1 + (t2.1 - t1.1) * beta) } else { (t0.0 + (t1.0 - t0.0) * beta, t0.1 + (t1.1 - t0.1) * beta) };
+        let is_second_half = i > (t1.1 - t0.1) || t1.1 == t0.1;
+        let segment_height = (if is_second_half { t2.1 - t1.1 } else { t1.1 - t0.1 }) ;
+        let alpha = i as f32 / total_height as f32;
+        let beta = (i - (if is_second_half { t1.1 - t0.1 } else { 0 })) as f32 / segment_height as f32;
+        let mut a = ((t0.0 as f32 + (t2.0 - t0.0) as f32 * alpha) as i32, (t0.1 as f32 + (t2.1 - t0.1) as f32 * alpha) as i32);
+        let mut b = if is_second_half {
+            ((t1.0 as f32 + (t2.0 - t1.0) as f32 * beta) as i32, (t1.1 as f32 + (t2.1 - t1.1) as f32 * beta) as i32)
+        } else {
+            ((t0.0 as f32 + (t1.0 - t0.0) as f32 * beta) as i32, (t0.1 as f32 + (t1.1 - t0.1) as f32 * beta) as i32)
+        };
 
         if a.0 > b.0 { swap(&mut a, &mut b) };
         for j in a.0 as i32..(b.0 as i32 + 1) as i32 {
@@ -114,9 +117,9 @@ fn render_object() {
         let intensity = n[0] * light_dir[0] + n[1] * light_dir[1] + n[2] * light_dir[2];
         if intensity > 0.0 {
             draw_triangle(
-                (screen_coordinates[0].0, screen_coordinates[0].1),
-                (screen_coordinates[1].0, screen_coordinates[1].1),
-                (screen_coordinates[2].0, screen_coordinates[2].1),
+                (screen_coordinates[0].0 as i32, screen_coordinates[0].1 as i32),
+                (screen_coordinates[1].0 as i32, screen_coordinates[1].1 as i32),
+                (screen_coordinates[2].0 as i32, screen_coordinates[2].1 as i32),
                 Color::new((255.0 * intensity) as u8, (255.0 * intensity) as u8, (255.0 * intensity) as u8),
                 &mut image,
             );
