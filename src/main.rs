@@ -15,6 +15,10 @@ use tga_writer::Color;
 use wavefront_parser::read;
 use std::time::Instant;
 
+const HEIGHT: f32 = 1000.0;
+const WIDTH: f32 = 1000.0;
+const DEPTH: f32  = 255.0;
+
 fn draw_line(mut x0: f32, mut y0: f32, mut x1: f32, mut y1: f32, color: Color, image: &mut Image) {
     let dx = (x0 - x1).abs();
     let dy = (y0 - y1).abs();
@@ -41,7 +45,7 @@ fn draw_line(mut x0: f32, mut y0: f32, mut x1: f32, mut y1: f32, color: Color, i
     }
 }
 
-fn draw_triangle(mut t0: (i32, i32), mut t1: (i32, i32), mut t2: (i32, i32), color: Color, image: &mut Image) {
+fn draw_triangle(mut t0: (i32, i32, i32), mut t1: (i32, i32, i32), mut t2: (i32, i32, i32), z_buffer: &mut Vec<i32>,color: Color, image: &mut Image) {
     if t0.1 == t1.1 && t0.1 == t2.1 { return; }
 
     if t0.1 > t1.1 { swap(&mut t0, &mut t1) };
@@ -54,16 +58,24 @@ fn draw_triangle(mut t0: (i32, i32), mut t1: (i32, i32), mut t2: (i32, i32), col
         let segment_height = (if is_second_half { t2.1 - t1.1 } else { t1.1 - t0.1 }) ;
         let alpha = i as f32 / total_height as f32;
         let beta = (i - (if is_second_half { t1.1 - t0.1 } else { 0 })) as f32 / segment_height as f32;
-        let mut a = ((t0.0 as f32 + (t2.0 - t0.0) as f32 * alpha) as i32, (t0.1 as f32 + (t2.1 - t0.1) as f32 * alpha) as i32);
+        //ToDo: Replace with Point struct
+        let mut a = ((t0.0 as f32 + (t2.0 - t0.0) as f32 * alpha) as i32, (t0.1 as f32 + (t2.1 - t0.1) as f32 * alpha) as i32, (t0.2 as f32 + (t2.2 - t0.2) as f32 * alpha) as i32);
         let mut b = if is_second_half {
-            ((t1.0 as f32 + (t2.0 - t1.0) as f32 * beta) as i32, (t1.1 as f32 + (t2.1 - t1.1) as f32 * beta) as i32)
+            ((t1.0 as f32 + (t2.0 - t1.0) as f32 * beta) as i32, (t1.1 as f32 + (t2.1 - t1.1) as f32 * beta) as i32, (t1.2 as f32 + (t2.2 - t1.2) as f32 * beta) as i32)
         } else {
-            ((t0.0 as f32 + (t1.0 - t0.0) as f32 * beta) as i32, (t0.1 as f32 + (t1.1 - t0.1) as f32 * beta) as i32)
+            ((t0.0 as f32 + (t1.0 - t0.0) as f32 * beta) as i32, (t0.1 as f32 + (t1.1 - t0.1) as f32 * beta) as i32, (t0.2 as f32 + (t1.2 - t0.2) as f32 * beta) as i32)
         };
 
         if a.0 > b.0 { swap(&mut a, &mut b) };
         for j in a.0 as i32..(b.0 as i32 + 1) as i32 {
-            image.set_pixel(j, t0.1 as i32 + i, color)
+            let phi: f32 = if b.0 == a.0 { 1. } else { (j - a.0) as f32 / (b.0 - a.0) as f32 };
+            let p = (a.0 as f32 + (b.0 - a.0) as f32 * phi, a.1 as f32 + (b.1 - a.1) as f32 * phi, a.2 as f32 + (b.2 - a.2) as f32 * phi);
+            let idx = (p.0 + p.1 * WIDTH) as usize;
+
+            if z_buffer[idx] < p.2 as i32 {
+                z_buffer[idx] = p.2 as i32;
+                image.set_pixel(p.0 as i32, p.1 as i32, color);
+            }
         }
     }
 }
@@ -75,9 +87,9 @@ fn normalize_vector(vector: Vec<f32>) -> Vec<f32> {
 }
 
 fn render_object() {
-    let height = 1000.0;
-    let width = 1000.0;
     let light_dir: Vec<f32> = vec![0.0, 0.0, 1.0];
+
+    let mut z_buffer = [i32::MIN; (WIDTH * HEIGHT) as usize].to_vec();
 
     let wavefront_object = wavefront_parser::read("E:\\project\\simple-renderer\\src\\head.obj".to_string()).unwrap();
     let vectors = wavefront_object.0;
@@ -85,15 +97,15 @@ fn render_object() {
 
     let start_time = Instant::now();
 
-    let mut image = Image::new((width + 1.0) as i32, (height + 1.0) as i32);
+    let mut image = Image::new(WIDTH as i32, HEIGHT as i32);
 
     for i in 0..faces.len() {
         let face = faces.get(i).unwrap();
-        let mut screen_coordinates: Vec<(f32, f32)> = vec![];
+        let mut screen_coordinates: Vec<(f32, f32, f32)> = vec![];
         let mut world_coordinates: Vec<(f32, f32, f32)> = vec![];
         for j in 0..3 {
             let v = vectors.get((*face.get(j).unwrap() - 1) as usize).unwrap();
-            screen_coordinates.push((((v[0] + 1.0) * width / 2.0) as f32, ((v[1] + 1.0) * height / 2.0) as f32));
+            screen_coordinates.push((((v[0] + 1.0) * WIDTH / 2.0) as f32, ((v[1] + 1.0) * HEIGHT / 2.0) as f32, ((v[2] + 1.0) * DEPTH / 2.0) as f32));
             world_coordinates.push((v[0], v[1], v[2]));
         }
 
@@ -117,9 +129,10 @@ fn render_object() {
         let intensity = n[0] * light_dir[0] + n[1] * light_dir[1] + n[2] * light_dir[2];
         if intensity > 0.0 {
             draw_triangle(
-                (screen_coordinates[0].0 as i32, screen_coordinates[0].1 as i32),
-                (screen_coordinates[1].0 as i32, screen_coordinates[1].1 as i32),
-                (screen_coordinates[2].0 as i32, screen_coordinates[2].1 as i32),
+                (screen_coordinates[0].0 as i32, screen_coordinates[0].1 as i32, screen_coordinates[0].2 as i32),
+                (screen_coordinates[1].0 as i32, screen_coordinates[1].1 as i32, screen_coordinates[1].2 as i32),
+                (screen_coordinates[2].0 as i32, screen_coordinates[2].1 as i32, screen_coordinates[2].2 as i32),
+                &mut z_buffer,
                 Color::new((255.0 * intensity) as u8, (255.0 * intensity) as u8, (255.0 * intensity) as u8),
                 &mut image,
             );
