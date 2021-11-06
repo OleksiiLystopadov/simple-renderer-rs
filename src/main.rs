@@ -46,25 +46,25 @@ fn draw_line(mut x0: f32, mut y0: f32, mut x1: f32, mut y1: f32, color: Color, i
     }
 }
 
-fn draw_triangle(mut t0: (i32, i32, i32), mut t1: (i32, i32, i32), mut t2: (i32, i32, i32), z_buffer: &mut Vec<i32>,color: Color, image: &mut Image) {
-    if t0.1 == t1.1 && t0.1 == t2.1 { return; }
+fn draw_triangle(mut t0: Point3D<i32>, mut t1: Point3D<i32>, mut t2: Point3D<i32>, z_buffer: &mut Vec<i32>,color: Color, image: &mut Image) {
+    if t0.y == t1.y && t0.y == t2.y { return; }
 
-    if t0.1 > t1.1 { swap(&mut t0, &mut t1) };
-    if t0.1 > t2.1 { swap(&mut t0, &mut t2) };
-    if t1.1 > t2.1 { swap(&mut t1, &mut t2) };
+    if t0.y > t1.y { swap(&mut t0, &mut t1) };
+    if t0.y > t2.y { swap(&mut t0, &mut t2) };
+    if t1.y > t2.y { swap(&mut t1, &mut t2) };
 
-    let total_height = t2.1 - t0.1;
+    let total_height = t2.y - t0.y;
     for i in 0..total_height as i32 {
-        let is_second_half = i > (t1.1 - t0.1) || t1.1 == t0.1;
-        let segment_height = (if is_second_half { t2.1 - t1.1 } else { t1.1 - t0.1 }) ;
+        let is_second_half = i > (t1.y - t0.y) || t1.y == t0.y;
+        let segment_height = (if is_second_half { t2.y - t1.y } else { t1.y - t0.y }) ;
         let alpha = i as f32 / total_height as f32;
-        let beta = (i - (if is_second_half { t1.1 - t0.1 } else { 0 })) as f32 / segment_height as f32;
+        let beta = (i - (if is_second_half { t1.y - t0.y } else { 0 })) as f32 / segment_height as f32;
         //ToDo: Replace with Point struct
-        let mut a = ((t0.0 as f32 + (t2.0 - t0.0) as f32 * alpha) as i32, (t0.1 as f32 + (t2.1 - t0.1) as f32 * alpha) as i32, (t0.2 as f32 + (t2.2 - t0.2) as f32 * alpha) as i32);
+        let mut a = ((t0.x as f32 + (t2.x - t0.x) as f32 * alpha) as i32, (t0.y as f32 + (t2.y - t0.y) as f32 * alpha) as i32, (t0.z as f32 + (t2.z - t0.z) as f32 * alpha) as i32);
         let mut b = if is_second_half {
-            ((t1.0 as f32 + (t2.0 - t1.0) as f32 * beta) as i32, (t1.1 as f32 + (t2.1 - t1.1) as f32 * beta) as i32, (t1.2 as f32 + (t2.2 - t1.2) as f32 * beta) as i32)
+            ((t1.x as f32 + (t2.x - t1.x) as f32 * beta) as i32, (t1.y as f32 + (t2.y - t1.y) as f32 * beta) as i32, (t1.z as f32 + (t2.z - t1.z) as f32 * beta) as i32)
         } else {
-            ((t0.0 as f32 + (t1.0 - t0.0) as f32 * beta) as i32, (t0.1 as f32 + (t1.1 - t0.1) as f32 * beta) as i32, (t0.2 as f32 + (t1.2 - t0.2) as f32 * beta) as i32)
+            ((t0.x as f32 + (t1.x - t0.x) as f32 * beta) as i32, (t0.y as f32 + (t1.y - t0.y) as f32 * beta) as i32, (t0.z as f32 + (t1.z - t0.z) as f32 * beta) as i32)
         };
 
         if a.0 > b.0 { swap(&mut a, &mut b) };
@@ -120,18 +120,18 @@ fn render_object() {
 
         let n: Vec<f32> = normalize_vector(
             vec![
-                (v1.y * v2.z) - (v1.z * v2.y),
-                (v1.z * v2.x) - (v1.x * v2.z),
-                (v1.x * v2.y) - (v1.y * v2.x)
+                (v1.y as f32 * v2.z as f32) - (v1.z as f32 * v2.y as f32),
+                (v1.z as f32 * v2.x as f32) - (v1.x as f32 * v2.z as f32),
+                (v1.x as f32 * v2.y as f32) - (v1.y as f32 * v2.x as f32)
             ]
         );
 
         let intensity = n[0] * light_dir[0] + n[1] * light_dir[1] + n[2] * light_dir[2];
         if intensity > 0.0 {
             draw_triangle(
-                (screen_coordinates[0].x as i32, screen_coordinates[0].y as i32, screen_coordinates[0].z as i32),
-                (screen_coordinates[1].x as i32, screen_coordinates[1].y as i32, screen_coordinates[1].z as i32),
-                (screen_coordinates[2].x as i32, screen_coordinates[2].y as i32, screen_coordinates[2].z as i32),
+                Point3D::<i32>::from(screen_coordinates[0]),
+                Point3D::<i32>::from(screen_coordinates[1]),
+                Point3D::<i32>::from(screen_coordinates[2]),
                 &mut z_buffer,
                 Color::new((255.0 * intensity) as u8, (255.0 * intensity) as u8, (255.0 * intensity) as u8),
                 &mut image,
