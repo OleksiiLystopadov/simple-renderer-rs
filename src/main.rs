@@ -9,11 +9,12 @@ use std::path::Path;
 
 mod tga_writer;
 mod wavefront_parser;
-
+mod geometry;
 use tga_writer::Image;
 use tga_writer::Color;
 use wavefront_parser::read;
 use std::time::Instant;
+use crate::geometry::point_3d::Point3D;
 
 const HEIGHT: f32 = 1000.0;
 const WIDTH: f32 = 1000.0;
