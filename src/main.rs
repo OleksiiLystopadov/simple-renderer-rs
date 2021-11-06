@@ -102,37 +102,36 @@ fn render_object() {
 
     for i in 0..faces.len() {
         let face = faces.get(i).unwrap();
-        let mut screen_coordinates: Vec<(f32, f32, f32)> = vec![];
-        let mut world_coordinates: Vec<(f32, f32, f32)> = vec![];
+        let mut screen_coordinates: Vec<Point3D<f32>> = vec![];
+        let mut world_coordinates: Vec<Point3D<f32>> = vec![];
         for j in 0..3 {
             let v = vectors.get((*face.get(j).unwrap() - 1) as usize).unwrap();
-            screen_coordinates.push((((v[0] + 1.0) * WIDTH / 2.0) as f32, ((v[1] + 1.0) * HEIGHT / 2.0) as f32, ((v[2] + 1.0) * DEPTH / 2.0) as f32));
-            world_coordinates.push((v[0], v[1], v[2]));
+            screen_coordinates.push(Point3D::<f32>::new(
+                ((v[0] + 1.0) * WIDTH / 2.0) as f32,
+                ((v[1] + 1.0) * HEIGHT / 2.0) as f32,
+                ((v[2] + 1.0) * DEPTH / 2.0) as f32
+            ));
+            world_coordinates.push(Point3D::<f32>::new(v[0], v[1], v[2]));
         }
 
-        let vx1 = world_coordinates[0].0 - world_coordinates[1].0;
-        let vy1 = world_coordinates[0].1 - world_coordinates[1].1;
-        let vz1 = world_coordinates[0].2 - world_coordinates[1].2;
-
-        let vx2 = world_coordinates[1].0 - world_coordinates[2].0;
-        let vy2 = world_coordinates[1].1 - world_coordinates[2].1;
-        let vz2 = world_coordinates[1].2 - world_coordinates[2].2;
+        let v1 = world_coordinates[0] - world_coordinates[1];
+        let v2 = world_coordinates[1] - world_coordinates[2];
 
 
         let n: Vec<f32> = normalize_vector(
             vec![
-                (vy1 * vz2) - (vz1 * vy2),
-                (vz1 * vx2) - (vx1 * vz2),
-                (vx1 * vy2) - (vy1 * vx2)
+                (v1.y * v2.z) - (v1.z * v2.y),
+                (v1.z * v2.x) - (v1.x * v2.z),
+                (v1.x * v2.y) - (v1.y * v2.x)
             ]
         );
 
         let intensity = n[0] * light_dir[0] + n[1] * light_dir[1] + n[2] * light_dir[2];
         if intensity > 0.0 {
             draw_triangle(
-                (screen_coordinates[0].0 as i32, screen_coordinates[0].1 as i32, screen_coordinates[0].2 as i32),
-                (screen_coordinates[1].0 as i32, screen_coordinates[1].1 as i32, screen_coordinates[1].2 as i32),
-                (screen_coordinates[2].0 as i32, screen_coordinates[2].1 as i32, screen_coordinates[2].2 as i32),
+                (screen_coordinates[0].x as i32, screen_coordinates[0].y as i32, screen_coordinates[0].z as i32),
+                (screen_coordinates[1].x as i32, screen_coordinates[1].y as i32, screen_coordinates[1].z as i32),
+                (screen_coordinates[2].x as i32, screen_coordinates[2].y as i32, screen_coordinates[2].z as i32),
                 &mut z_buffer,
                 Color::new((255.0 * intensity) as u8, (255.0 * intensity) as u8, (255.0 * intensity) as u8),
                 &mut image,

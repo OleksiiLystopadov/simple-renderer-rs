@@ -5,6 +5,7 @@ use std::ops::{
     Div
 };
 
+#[derive(Debug, Copy, Clone)]
 pub struct Point3D<T> {
     pub(crate) x: T,
     pub(crate) y: T,
