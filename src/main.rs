@@ -60,17 +60,17 @@ fn draw_triangle(mut t0: Point3D<i32>, mut t1: Point3D<i32>, mut t2: Point3D<i32
         let alpha = i as f32 / total_height as f32;
         let beta = (i - (if is_second_half { t1.y - t0.y } else { 0 })) as f32 / segment_height as f32;
         //ToDo: Replace with Point struct
-        let mut a = ((t0.x as f32 + (t2.x - t0.x) as f32 * alpha) as i32, (t0.y as f32 + (t2.y - t0.y) as f32 * alpha) as i32, (t0.z as f32 + (t2.z - t0.z) as f32 * alpha) as i32);
+        let mut a = Point3D::<i32>::from(Point3D::<f32>::from(t0) + Point3D::<f32>::from(t2 - t0).multiply(alpha));
         let mut b = if is_second_half {
-            ((t1.x as f32 + (t2.x - t1.x) as f32 * beta) as i32, (t1.y as f32 + (t2.y - t1.y) as f32 * beta) as i32, (t1.z as f32 + (t2.z - t1.z) as f32 * beta) as i32)
+            Point3D::<i32>::from(Point3D::<f32>::from(t1) + Point3D::<f32>::from(t2 - t1).multiply(beta))
         } else {
-            ((t0.x as f32 + (t1.x - t0.x) as f32 * beta) as i32, (t0.y as f32 + (t1.y - t0.y) as f32 * beta) as i32, (t0.z as f32 + (t1.z - t0.z) as f32 * beta) as i32)
+            Point3D::<i32>::from(Point3D::<f32>::from(t0) + Point3D::<f32>::from(t1 - t0).multiply(beta))
         };
 
-        if a.0 > b.0 { swap(&mut a, &mut b) };
-        for j in a.0 as i32..(b.0 as i32 + 1) as i32 {
-            let phi: f32 = if b.0 == a.0 { 1. } else { (j - a.0) as f32 / (b.0 - a.0) as f32 };
-            let p = (a.0 as f32 + (b.0 - a.0) as f32 * phi, a.1 as f32 + (b.1 - a.1) as f32 * phi, a.2 as f32 + (b.2 - a.2) as f32 * phi);
+        if a.x > b.x { swap(&mut a, &mut b) };
+        for j in a.x..(b.x + 1) {
+            let phi: f32 = if b.x == a.x { 1. } else { (j - a.x) as f32 / (b.x - a.x) as f32 };
+            let p = (a.x as f32 + (b.x - a.x) as f32 * phi, a.y as f32 + (b.y - a.y) as f32 * phi, a.z as f32 + (b.z - a.z) as f32 * phi);
             let idx = (p.0 + p.1 * WIDTH) as usize;
 
             if z_buffer[idx] < p.2 as i32 {

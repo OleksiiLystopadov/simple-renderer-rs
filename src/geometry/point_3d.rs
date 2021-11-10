@@ -40,6 +40,16 @@ impl From<Point3D<f32>> for Point3D<i32> {
     }
 }
 
+impl From<Point3D<i32>> for Point3D<f32> {
+    fn from(src: Point3D<i32>) -> Self {
+        Point3D {
+            x: src.x as f32,
+            y: src.y as f32,
+            z: src.z as f32
+        }
+    }
+}
+
 impl <T: std::ops::Sub<Output = T>> Sub for Point3D<T> {
     type Output = Self;
 
