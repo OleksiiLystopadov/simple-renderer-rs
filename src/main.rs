@@ -59,7 +59,6 @@ fn draw_triangle(mut t0: Point3D<i32>, mut t1: Point3D<i32>, mut t2: Point3D<i32
         let segment_height = (if is_second_half { t2.y - t1.y } else { t1.y - t0.y }) ;
         let alpha = i as f32 / total_height as f32;
         let beta = (i - (if is_second_half { t1.y - t0.y } else { 0 })) as f32 / segment_height as f32;
-        //ToDo: Replace with Point struct
         let mut a = Point3D::<i32>::from(Point3D::<f32>::from(t0) + Point3D::<f32>::from(t2 - t0).multiply(alpha));
         let mut b = if is_second_half {
             Point3D::<i32>::from(Point3D::<f32>::from(t1) + Point3D::<f32>::from(t2 - t1).multiply(beta))
@@ -70,12 +69,12 @@ fn draw_triangle(mut t0: Point3D<i32>, mut t1: Point3D<i32>, mut t2: Point3D<i32
         if a.x > b.x { swap(&mut a, &mut b) };
         for j in a.x..(b.x + 1) {
             let phi: f32 = if b.x == a.x { 1. } else { (j - a.x) as f32 / (b.x - a.x) as f32 };
-            let p = (a.x as f32 + (b.x - a.x) as f32 * phi, a.y as f32 + (b.y - a.y) as f32 * phi, a.z as f32 + (b.z - a.z) as f32 * phi);
-            let idx = (p.0 + p.1 * WIDTH) as usize;
+            let p = Point3D::<f32>::from(a) + Point3D::<f32>::from(b - a).multiply(phi);
+            let idx = (p.x + p.y * WIDTH) as usize;
 
-            if z_buffer[idx] < p.2 as i32 {
-                z_buffer[idx] = p.2 as i32;
-                image.set_pixel(p.0 as i32, p.1 as i32, color);
+            if z_buffer[idx] < p.z as i32 {
+                z_buffer[idx] = p.z as i32;
+                image.set_pixel(p.x as i32, p.y as i32, color);
             }
         }
     }
